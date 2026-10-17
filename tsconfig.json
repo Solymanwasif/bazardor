@@ -29,6 +29,6 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts"
-  ],
+, "components/ProductCard.jsx", "components/Navbar.jsx", "components/Footer.jsx", "app/page.jsx", "app/layout.jsx", "lib/api.js"  ],
   "exclude": ["node_modules"]
 }
