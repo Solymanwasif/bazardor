@@ -117,23 +117,28 @@ export default function Navbar() {
     });
   };
 
-  const handleLogout = async () => {
-    if (signingOut) return;
+const handleLogout = async () => {
+  if (signingOut) return;
 
-    setSigningOut(true);
+  setSigningOut(true);
 
-    try {
-      await logout();
+  try {
+    await logout();
 
-      closeDropdown();
-      toast.success("সফলভাবে সাইন আউট হয়েছে");
-      router.replace("/");
-    } catch (error) {
-      console.error("Logout failed:", error);
-      toast.error("সাইন আউট করা যায়নি");
-      setSigningOut(false);
-    }
-  };
+    setDropdownState({
+      pathname,
+      open: false,
+    });
+
+    toast.success("সফলভাবে সাইন আউট হয়েছে");
+    router.replace("/");
+  } catch (error) {
+    console.error("Logout failed:", error.code, error.message);
+    toast.error("সাইন আউট করা যায়নি");
+  } finally {
+    setSigningOut(false);
+  }
+};
 
   const accountLoading = !mounted || loading;
 
