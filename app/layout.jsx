@@ -1,4 +1,3 @@
-
 import "./globals.css";
 import { Suspense } from "react";
 import Navbar from "@/components/Navbar";
@@ -16,13 +15,13 @@ export default function RootLayout({ children }) {
     <html lang="bn">
       <body
   suppressHydrationWarning
-  className="min-h-screen flex flex-col"
+  className="smallest-h-screen flex flex-col"
 >
   <AuthProvider>
     <Suspense fallback={<div className="h-20 bg-white" />}>
     <Navbar />
    </Suspense>
- 
+
     <Toaster />
 
     <div className="flex-1 flex flex-col">

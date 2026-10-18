@@ -10,56 +10,61 @@ export default function ProductCard({ product }) {
   };
 
   const formatNumber = (number) =>
-    Number(number).toLocaleString("bn-BD");
+    Number(number ?? 0).toLocaleString("bn-BD");
 
-  const direction = product.change.dir;
+  const direction = product.change?.dir;
+  const isUp = direction === "up";
+  const isDown = direction === "down";
 
-  const badgeColor =
-    direction === "up"
-      ? "bg-green-100 text-green-700"
-      : direction === "down"
-      ? "bg-red-100 text-red-700"
-      : "bg-gray-100 text-gray-600";
+  const badgeColor = isUp
+    ? "bg-red-50 text-red-600"
+    : isDown
+    ? "bg-green-50 text-green-700"
+    : "bg-gray-100 text-gray-600";
 
-  const arrow =
-    direction === "up" ? "▲" : direction === "down" ? "▼" : "—";
+  const arrow = isUp ? "▲" : isDown ? "▼" : "—";
 
   return (
     <Link
       href={`/product/${product.slug}`}
       className="block h-full"
     >
-      <div className="h-full bg-white border border-gray-200 rounded-2xl p-5 hover:shadow-lg hover:-translate-y-1 transition-all duration-200">
-        <div className="flex justify-center items-center bg-green-50 rounded-xl h-28 text-6xl">
-          {product.image}
+      <article className="h-full rounded-2xl border border-[#dfe8e1] bg-[#fbfdfb] p-3 transition duration-200 hover:-translate-y-0.5 hover:border-green-200 hover:shadow-md">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#f0f5f0] text-2xl">
+            {product.image || "🛒"}
+          </div>
+
+          <div className="min-w-0 flex-1">
+            <h3 className="truncate text-sm font-bold text-[#253329] sm:text-base">
+              {product.nameBn}
+            </h3>
+
+            <p className="mt-0.5 text-xs text-gray-500">
+              প্রতি {units[product.unit] || product.unit}
+            </p>
+          </div>
         </div>
 
-        <h3 className="text-lg font-bold text-gray-900 mt-4">
-          {product.nameBn}
-        </h3>
-
-        <p className="text-gray-500 text-sm mt-1">
-          প্রতি {units[product.unit] || product.unit}
-        </p>
-
-        <div className="flex justify-between items-end gap-2 mt-5">
-          <div>
-            <p className="text-gray-500 text-xs">
+        <div className="mt-3 flex items-end justify-between gap-2">
+          <div className="min-w-0">
+            <p className="text-[11px] text-gray-500">
               আজকের দাম
             </p>
 
-            <p className="text-green-800 font-bold text-xl mt-1">
-              {formatNumber(product.today)} টাকা
+            <p className="mt-0.5 text-base font-extrabold text-[#253329] sm:text-lg">
+              {formatNumber(product.today)}{" "}
+              <span className="text-xs font-medium">টাকা</span>
             </p>
           </div>
 
           <span
-            className={`${badgeColor} px-3 py-1 rounded-lg text-sm font-medium whitespace-nowrap`}
+            className={`shrink-0 whitespace-nowrap rounded-full px-2 py-1 text-[10px] font-semibold sm:text-xs ${badgeColor}`}
           >
-            {arrow} {formatNumber(Math.abs(product.change.pct))}%
+            {arrow} {formatNumber(Math.abs(product.change?.pct ?? 0))}%
           </span>
         </div>
-      </div>
+      </article>
     </Link>
   );
 }

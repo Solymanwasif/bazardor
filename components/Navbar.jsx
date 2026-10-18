@@ -5,10 +5,14 @@ import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter, usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { toast } from "react-hot-toast";
 import {
-  FaShoppingCart,
   FaUserCircle,
   FaChevronDown,
   FaSignOutAlt,
@@ -28,28 +32,55 @@ const categories = [
   { name: "মসলা", href: "/category/mosla", icon: "🌶️" },
 ];
 
+const subscribe = () => () => {};
+const getSnapshot = () => true;
+const getServerSnapshot = () => false;
+
+function getBangladeshDate() {
+  return new Intl.DateTimeFormat("bn-BD", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "Asia/Dhaka",
+  }).format(new Date());
+}
+
 export default function Navbar() {
   const { user, logout, loading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
+  const mounted = useSyncExternalStore(
+    subscribe,
+    getSnapshot,
+    getServerSnapshot
+  );
+
   const [date, setDate] = useState("");
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [dropdownState, setDropdownState] = useState({
+    pathname: "",
+    open: false,
+  });
+  const [signingOut, setSigningOut] = useState(false);
+
   const dropdownRef = useRef(null);
+
+  const dropdownOpen =
+    dropdownState.pathname === pathname && dropdownState.open;
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setDate(
-        new Date().toLocaleDateString("bn-BD", {
-          day: "numeric",
-          month: "long",
-          year: "numeric",
-          timeZone: "Asia/Dhaka",
-        })
-      );
+      setDate(getBangladeshDate());
     }, 0);
 
-    return () => clearTimeout(timer);
+    const interval = setInterval(() => {
+      setDate(getBangladeshDate());
+    }, 60000);
+
+    return () => {
+      clearTimeout(timer);
+      clearInterval(interval);
+    };
   }, []);
 
   useEffect(() => {
@@ -58,7 +89,10 @@ export default function Navbar() {
         dropdownRef.current &&
         !dropdownRef.current.contains(event.target)
       ) {
-        setDropdownOpen(false);
+        setDropdownState({
+          pathname,
+          open: false,
+        });
       }
     };
 
@@ -67,55 +101,89 @@ export default function Navbar() {
     return () => {
       document.removeEventListener("mousedown", handleOutsideClick);
     };
-  }, []);
+  }, [pathname]);
 
+  const closeDropdown = () => {
+    setDropdownState({
+      pathname,
+      open: false,
+    });
+  };
+
+  const toggleDropdown = () => {
+    setDropdownState({
+      pathname,
+      open: !dropdownOpen,
+    });
+  };
 
   const handleLogout = async () => {
+    if (signingOut) return;
+
+    setSigningOut(true);
+
     try {
       await logout();
-      setDropdownOpen(false);
+
+      closeDropdown();
       toast.success("সফলভাবে সাইন আউট হয়েছে");
-      router.push("/");
+      router.replace("/");
     } catch (error) {
       console.error("Logout failed:", error);
       toast.error("সাইন আউট করা যায়নি");
+      setSigningOut(false);
     }
   };
 
+  const accountLoading = !mounted || loading;
+
   return (
-    <nav className="bg-white text-gray-900 border-b border-gray-200 relative z-50">
-      <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between gap-3 py-4">
-          <Link href="/" className="flex items-center gap-3 shrink-0">
-            <div className="w-10 h-10 bg-[#008c45] rounded-xl flex items-center justify-center text-white">
-              <FaShoppingCart size={20} />
-            </div>
+    <nav className="relative z-50 border-b border-gray-200 bg-white text-gray-900">
+      <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between gap-3 py-3">
+          
+              <Link
+                href="/"
+                onClick={closeDropdown}
+                className="flex shrink-0 items-center gap-2"
+              >
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#008c45]">
+                  <Image
+                    src="/logo-icon.png"
+                    alt="বাজার দর লোগো"
+                    width={23}
+                    height={23}
+                    priority
+                    className="h-[23px] w-[23px] object-contain"
+                  />
+                </div>
 
-            <div>
-              <h1 className="text-xl font-bold text-[#1e3024]">
-                বাজার দর
-              </h1>
+                <div>
+                  <h1 className="text-lg font-bold leading-tight text-[#1e3024]">
+                    বাজার দর
+                  </h1>
 
-              <p className="text-[11px] text-gray-500">
-                {date || "আজকের বাজারের দাম"}
-              </p>
-            </div>
-          </Link>
+                  <p className="text-[10px] text-gray-500">
+                    {date || "আজকের বাজারের দাম"}
+                  </p>
+                </div>
+              </Link>
 
-          <div className="flex items-center gap-3">
-            {loading ? (
+
+          <div className="flex items-center gap-2 sm:gap-3">
+            {accountLoading ? (
               <div
-                className="h-10 w-28 sm:w-36 rounded-lg bg-gray-100 animate-pulse"
+                className="h-9 w-28 animate-pulse rounded-lg bg-gray-100 sm:w-36"
                 aria-label="অ্যাকাউন্ট লোড হচ্ছে"
               />
             ) : user ? (
               <div className="relative" ref={dropdownRef}>
                 <button
                   type="button"
-                  onClick={() => setDropdownOpen((previous) => !previous)}
+                  onClick={toggleDropdown}
                   aria-expanded={dropdownOpen}
                   aria-haspopup="menu"
-                  className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-gray-100 transition cursor-pointer"
+                  className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 transition hover:bg-gray-100"
                 >
                   {user.photoURL ? (
                     <Image
@@ -125,15 +193,15 @@ export default function Navbar() {
                       height={32}
                       unoptimized
                       referrerPolicy="no-referrer"
-                      className="w-8 h-8 rounded-lg object-cover"
+                      className="h-8 w-8 rounded-lg object-cover"
                     />
                   ) : (
-                    <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center">
-                      <FaUserCircle className="text-gray-400 text-2xl" />
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100">
+                      <FaUserCircle className="text-2xl text-gray-400" />
                     </div>
                   )}
 
-                  <span className="text-sm font-medium max-w-24 sm:max-w-48 truncate">
+                  <span className="max-w-24 truncate text-sm font-medium sm:max-w-40">
                     {user.displayName ||
                       user.email?.split("@")[0] ||
                       "ব্যবহারকারী"}
@@ -150,14 +218,14 @@ export default function Navbar() {
                 {dropdownOpen && (
                   <div
                     role="menu"
-                    className="absolute right-0 top-full mt-2 w-52 max-w-[calc(100vw-2rem)] bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-50"
+                    className="absolute right-0 top-full z-50 mt-2 w-52 max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg"
                   >
-                    <div className="px-4 py-3 border-b border-gray-100">
-                      <p className="text-sm font-semibold truncate">
+                    <div className="border-b border-gray-100 px-4 py-3">
+                      <p className="truncate text-sm font-semibold">
                         {user.displayName || "ব্যবহারকারী"}
                       </p>
 
-                      <p className="text-xs text-gray-500 truncate">
+                      <p className="truncate text-xs text-gray-500">
                         {user.email}
                       </p>
                     </div>
@@ -165,8 +233,8 @@ export default function Navbar() {
                     <Link
                       href="/profile"
                       role="menuitem"
-                      onClick={() => setDropdownOpen(false)}
-                      className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-green-50 transition"
+                      onClick={closeDropdown}
+                      className="flex items-center gap-3 px-4 py-3 text-sm transition hover:bg-green-50"
                     >
                       <FaUser className="text-green-700" />
                       আমার প্রোফাইল
@@ -176,35 +244,38 @@ export default function Navbar() {
                       type="button"
                       role="menuitem"
                       onClick={handleLogout}
-                      className="flex items-center gap-3 w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition cursor-pointer"
+                      disabled={signingOut}
+                      className="flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-left text-sm text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       <FaSignOutAlt />
-                      সাইন আউট
+                      {signingOut
+                        ? "অপেক্ষা করুন..."
+                        : "সাইন আউট"}
                     </button>
                   </div>
                 )}
               </div>
             ) : (
-              <>
+              <div className="flex items-center gap-1 sm:gap-3">
                 <Link
                   href="/signin"
-                  className="text-sm font-medium px-3 py-2 hover:text-green-700 transition"
+                  className="rounded-lg px-2 py-2 text-sm font-medium transition hover:text-green-700 sm:px-3"
                 >
                   সাইন ইন
                 </Link>
 
                 <Link
                   href="/signup"
-                  className="bg-[#008c45] hover:bg-[#00783b] text-white text-sm font-medium px-4 py-2 rounded-lg transition"
+                  className="rounded-lg bg-[#008c45] px-3 py-2 text-sm font-medium text-white transition hover:bg-[#00783b] sm:px-4"
                 >
                   সাইন আপ
                 </Link>
-              </>
+              </div>
             )}
           </div>
         </div>
 
-        <div className="flex items-center gap-2 overflow-x-auto py-3 text-sm border-t border-gray-100">
+        <div className="flex items-center gap-2 overflow-x-auto border-t border-gray-100 py-2 text-sm">
           {categories.map((category) => {
             const active =
               category.href === "/"
@@ -216,10 +287,11 @@ export default function Navbar() {
               <Link
                 key={category.href}
                 href={category.href}
+                onClick={closeDropdown}
                 aria-current={active ? "page" : undefined}
-                className={`flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-2 transition ${
+                className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-2 transition ${
                   active
-                    ? "bg-green-50 text-green-700 font-bold"
+                    ? "bg-green-50 font-bold text-green-700"
                     : "text-gray-700 hover:bg-gray-100"
                 }`}
               >

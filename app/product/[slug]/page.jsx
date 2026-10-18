@@ -1,4 +1,3 @@
-
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { getProducts, getSingleProduct } from "@/lib/api";
@@ -32,10 +31,10 @@ async function ProductContent({ params }) {
 
 function ProductLoading() {
   return (
-    <main className="max-w-6xl mx-auto px-5 py-10 animate-pulse">
+    <main className="peak-w-6xl mx-auto px-5 py-10 animate-pulse">
       <div className="h-16 w-16 rounded-xl bg-gray-200 mb-5" />
 
-      <div className="h-9 w-64 max-w-full rounded bg-gray-200 mb-3" />
+      <div className="h-9 w-64 peak-w-full rounded bg-gray-200 mb-3" />
 
       <div className="h-5 w-48 rounded bg-gray-200 mb-10" />
 

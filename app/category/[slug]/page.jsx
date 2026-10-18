@@ -16,48 +16,41 @@ export default async function CategoryPage({ params }) {
 
   const category = categories.find((item) => item.slug === slug);
 
-  // Invalid category or category with no products
-  if (!category || products.length === 0) {
+  if (!category) {
     return (
-      <main className="max-w-6xl mx-auto px-5 py-20 text-center">
-        <div className="text-6xl mb-5">🔎</div>
-
-        <h1 className="text-3xl font-bold text-gray-900">
-          {category ? "কোনো পণ্য পাওয়া যায়নি" : "ক্যাটাগরি পাওয়া যায়নি"}
-        </h1>
-
-        <p className="text-gray-500 mt-3">
-          {category
-            ? "এই ক্যাটাগরিতে বর্তমানে কোনো পণ্য নেই।"
-            : "আপনার নির্বাচিত ক্যাটাগরিটি খুঁজে পাওয়া যায়নি।"}
-        </p>
-
-        <Link
-          href="/"
-          className="inline-block mt-6 bg-green-700 hover:bg-green-800 text-white font-semibold px-6 py-3 rounded-lg transition"
-        >
-          হোম পেজে ফিরে যান
-        </Link>
+      <main className="mx-auto min-h-screen w-full max-w-[720px] px-4 py-10">
+        <div className="rounded-xl border border-[#e0e8e1] bg-white p-8 text-center">
+          <div className="mb-4 text-5xl">🔎</div>
+          <h1 className="text-2xl font-bold text-gray-900">
+            ক্যাটাগরি পাওয়া যায়নি
+          </h1>
+          <Link
+            href="/"
+            className="mt-5 inline-block rounded-lg bg-green-700 px-5 py-3 text-white"
+          >
+            হোম পেজে ফিরে যান
+          </Link>
+        </div>
       </main>
     );
   }
 
   return (
-    <main className="max-w-6xl mx-auto px-5 py-10">
-      <section className="mb-8">
-        <div className="text-6xl">{category.icon}</div>
+<main className="mx-4 min-h-screen py-5 sm:mx-8 lg:mx-[144px]">
+        <section className="mb-4 flex items-center gap-3 rounded-xl border border-[#e0e8e1] bg-white/80 p-3">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center text-2xl">
+          {category.icon}
+        </div>
 
-        <h1 className="text-3xl sm:text-4xl font-bold mt-3">
-          {category.nameBn}
-        </h1>
+        <div className="min-w-0">
+          <h1 className="text-lg font-bold leading-6 text-[#253329]">
+            {category.nameBn}
+          </h1>
 
-        <p className="text-gray-500 mt-2">
-          এই ক্যাটাগরির সকল পণ্য
-        </p>
-
-        <p className="text-sm text-gray-500 mt-2">
-          মোট পণ্য: {products.length}টি
-        </p>
+          <p className="mt-0.5 text-xs text-gray-500">
+            প্রতি পণ্যের আজকের দাম ও পরিবর্তন
+          </p>
+        </div>
       </section>
 
       <CategoryProducts products={products} />
