@@ -47,10 +47,20 @@ export default function Signin() {
       toast.success("সফলভাবে সাইন ইন হয়েছে");
       router.push("/");
     } catch (error) {
-      if (error.code !== "auth/popup-closed-by-user") {
-        toast.error("সাইন ইন করা যায়নি");
-      }
-    } finally {
+          console.error("Google Sign-in Error:", error.code, error.message);
+
+          if (error.code === "auth/unauthorized-domain") {
+            toast.error("এই domain Firebase-এ অনুমোদিত নয়");
+          } else if (error.code === "auth/operation-not-allowed") {
+            toast.error("Firebase-এ Google Sign-in চালু নেই");
+          } else if (error.code === "auth/popup-blocked") {
+            toast.error("Browser popup block করেছে");
+          } else if (error.code === "auth/popup-closed-by-user") {
+            toast.error("Login popup বন্ধ করা হয়েছে");
+          } else {
+            toast.error(`Login failed: ${error.code || error.message}`);
+          }
+        } finally {
       setLoading(false);
     }
   };
