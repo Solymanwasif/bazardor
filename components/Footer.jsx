@@ -1,7 +1,7 @@
 
 export default function Footer() {
   return (
-    <footer className="mt-10 border-t border-black bg-[#FAFCFA] text-black">
+    <footer className=" border-t border-black bg-[#FAFCFA] text-black">
       <div className="mx-[144px] px-5 py-8 sm:px-8">
         <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-center">
           <div>
